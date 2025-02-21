@@ -4,20 +4,14 @@
 
 #define DISCORD_CLIENT_ID 1205361353188188221
 
-void DiscordManager::initialize() {
+void DiscordManager::initialize()
+{
     discord::Core* core{};
     auto result = discord::Core::Create(DISCORD_CLIENT_ID, DiscordCreateFlags_Default, &core);
     core_.reset(core);
 
     if (!core_ || result != discord::Result::Ok) 
         throw std::runtime_error("Failed to initialize Discord core");
-
-    // Set initial activity
-    discord::Activity activity{};
-    activity.SetDetails("No song playing");
-    activity.SetState("Idle");
-    activity.GetAssets().SetLargeImage("logo");
-    core_->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
 
     running_ = true;
     callback_thread_ = std::thread(&DiscordManager::run_callbacks, this);
@@ -39,10 +33,11 @@ void DiscordManager::update_activity(const discord::Activity& activity)
 
 void DiscordManager::run_callbacks()
 {
-    while (running_) {
-        if (core_) {
+    while (running_) 
+    {
+        if (core_) 
             core_->RunCallbacks();
-        }
+
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 }

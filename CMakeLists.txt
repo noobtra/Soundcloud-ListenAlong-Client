@@ -43,11 +43,9 @@ FetchContent_MakeAvailable(nlohmann_json)
 # --- Application Target ---
 add_executable(soundcloud_listenalong_app
   src/main.cpp
-  src/server.h
-  src/party_manager.hpp
   src/sc_discord.cpp 
   src/party_manager.cpp
-)
+  src/server.cpp)
 
 if(CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET soundcloud_listenalong_app PROPERTY CXX_STANDARD 20)
@@ -58,6 +56,7 @@ target_compile_definitions(soundcloud_listenalong_app
     ASIO_STANDALONE
     _WEBSOCKETPP_CPP11_INTERNAL_
     _WEBSOCKETPP_CPP11_TYPE_TRAITS_
+    $<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN>
 )
 
 target_link_libraries(soundcloud_listenalong_app PRIVATE nlohmann_json::nlohmann_json)

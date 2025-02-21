@@ -6,22 +6,18 @@
 
 #include <discord.h>
 
-class DiscordManager {
+class DiscordManager
+{
 public:
-    static DiscordManager& get()
-	{
-        static DiscordManager instance;
-        return instance;
-    }
+    DiscordManager() = default;
+    ~DiscordManager() { shutdown(); }
 
     void initialize();
     void update_activity(const discord::Activity& activity);
     void shutdown();
 
-    ~DiscordManager() { shutdown(); }
 
 private:
-    DiscordManager() = default;
     std::unique_ptr<discord::Core> core_;
     std::atomic<bool> running_{ false };
     std::thread callback_thread_;
