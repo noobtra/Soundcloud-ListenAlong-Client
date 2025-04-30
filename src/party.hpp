@@ -1,50 +1,55 @@
-// party.hpp
 #pragma once
 #include <string>
 #include <unordered_set>
-#include <memory>
+#include <random>
+#include <cstdint>
+#include "track.hpp"
 
-class Party {
-public:
-    Party(const std::string& host_id, const std::string& track_id, int max_size = 5)
-        : id_(generate_uuid()),
-        secret_(generate_join_secret()),
-        host_id_(host_id),
-        track_id_(track_id),
-        max_size_(max_size) {
-        members_.insert(host_id);
-    }
+namespace listenalong
+{
+    class party
+    {
+    public:
 
-    // Getters
-    [[nodiscard]] const std::string& id() const { return id_; }
-    [[nodiscard]] const std::string& secret() const { return secret_; }
-    [[nodiscard]] const std::string& host_id() const { return host_id_; }
-    [[nodiscard]] const std::unordered_set<std::string>& get_members() const { return members_; }
+        explicit party(const uint64_t host_id)
+            :
+            id_(generate_uuid()),
+            secret_(generate_uuid()),
+            host_id_(host_id),
+            track_({})
+        {
+            members_.insert(host_id);
+        }
 
-    [[nodiscard]] int member_count() const { return static_cast<int>(members_.size()); }
-    [[nodiscard]] int max_size() const { return max_size_; }
+        party() = default;
 
-    // Member management
-    bool add_member(const std::string& user_id)
-	{
-        if (members_.size() >= max_size_) 
-            return false;
+        // General getters
+        const std::string& get_id() const { return id_; }
+        const std::string& get_secret() const { return secret_; }
+		uint64_t get_host_id() const { return host_id_; } // if 0, not a valid party
 
-        return members_.insert(user_id).second;
-    }
+        // Member management
+        bool add_member(const uint64_t user_id) { return members_.insert(user_id).second; }
+        bool remove_member(const uint64_t user_id) { return members_.erase(user_id) > 0; }
+        bool contains(const uint64_t user_id) const { return members_.contains(user_id); }
+        const std::unordered_set<uint64_t>& get_members() const { return members_; }
+        int get_member_count() const { return static_cast<int>(members_.size()); }
 
-    bool remove_member(const std::string& user_id) { return members_.erase(user_id) > 0; }
+        // Track management
+        track get_track() const { return track_; }
+		void set_track(const track& new_track) { track_ = new_track; }
+		double get_duration() const { return track_.end_time - track_.start_time; } // Returns the duration of the track in ms
 
-    bool contains(const std::string& user_id) const { return members_.contains(user_id); }
 
-private:
-    static std::string generate_uuid();
-    std::string generate_join_secret();
+    private:
+        static std::string generate_uuid();
 
-    std::string id_;
-    std::string secret_;
-    std::string host_id_;
-    std::string track_id_;
-    int max_size_;
-    std::unordered_set<std::string> members_;
-};
+        std::string id_{};
+        std::string secret_{};
+
+        uint64_t host_id_ = 0;
+        track track_{};
+        std::unordered_set<uint64_t> members_{};
+        uint8_t max_size_ = 16;
+    };
+}

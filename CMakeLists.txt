@@ -8,6 +8,10 @@ endif()
 
 project(soundcloud_listenalong_app)
 
+if(MSVC)
+  add_compile_options(/bigobj)
+endif()
+
 option(USE_STANDALONE_ASIO "Use standalone Asio" ON)
 
 if(APPLE)
@@ -16,6 +20,9 @@ endif()
 
 # --- Fetch Dependencies ---
 include(FetchContent)
+
+set(OPENSSL_ROOT_DIR "C:/Users/Andrew/Documents/vcpkg/installed/x64-windows")
+find_package(OpenSSL REQUIRED)
 
 if(USE_STANDALONE_ASIO)
   FetchContent_Declare(asio
@@ -41,11 +48,8 @@ FetchContent_Declare(nlohmann_json
 FetchContent_MakeAvailable(nlohmann_json)
 
 # --- Application Target ---
-add_executable(soundcloud_listenalong_app
-  src/main.cpp
-  src/sc_discord.cpp 
-  src/party_manager.cpp
-  src/server.cpp)
+file(GLOB_RECURSE sources src/*.cpp)
+add_executable(soundcloud_listenalong_app ${sources})
 
 if(CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET soundcloud_listenalong_app PROPERTY CXX_STANDARD 20)
@@ -59,7 +63,10 @@ target_compile_definitions(soundcloud_listenalong_app
     $<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN>
 )
 
-target_link_libraries(soundcloud_listenalong_app PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(soundcloud_listenalong_app PRIVATE 
+nlohmann_json::nlohmann_json
+OpenSSL::SSL OpenSSL::Crypto
+)
 target_include_directories(soundcloud_listenalong_app PRIVATE
   ${asio_SOURCE_DIR}/asio/include
   ${websocketpp_SOURCE_DIR}

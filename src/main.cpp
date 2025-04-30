@@ -1,22 +1,27 @@
 ﻿#include <iostream>
-
-#include "sc_discord.hpp"
-#include "server.hpp"
+#include "core.hpp"
 
 int main()
 {
-    DiscordManager discord_manager{};
-    SoundCloudServer sc_server{};
-    try 
+    auto core = std::make_unique<listenalong::core>();
+    try
     {
-        discord_manager.initialize();
-        sc_server.initialize(9002);
+		// Initialize listenalong core, pass discord client as a dependency
+        core->initialize();
+
+        std::cout << "Soundcloud Manager and Discord Manager initialized, press any input to exit the process." << std::endl;
+        std::cin.get();
+        std::cout << "Shutting down application..." << std::endl;
+
+        // Explicitly clean up before returning
+        core.reset();
     }
     catch (const std::exception& e)
     {
         // Handle initialization errors
+        std::cout << "Error: " << e.what() << "\n";
         return 1;
     }
-    discord_manager.shutdown();
+
     return 0;
 }
