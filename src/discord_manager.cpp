@@ -15,19 +15,20 @@ void listenalong::discord_manager::initialize()
     if (!core_ || result != discord::Result::Ok)
         throw std::runtime_error("Failed to initialize Discord core");
 
-	// Install callback to wait for user to be ready
+	
     core_->UserManager().OnCurrentUserUpdate.Connect([this]
     {
     	core_->UserManager().GetCurrentUser(&current_user_);
-		std::cout << "User ID: " << current_user_.GetId() << std::endl;
-        running_ = true;
+		connected_ = true;
     });
 
-	while (!running_)
+	while (!connected_)
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		core_->RunCallbacks();
 	}
+
+    running_ = true;
 }
 
 void listenalong::discord_manager::update_activity(const discord::Activity& activity)

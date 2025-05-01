@@ -25,6 +25,7 @@ namespace listenalong
     private:
         discord::User current_user_;
         std::unique_ptr<discord::Core> core_;
+		std::atomic<bool> connected_{ false };
         std::atomic<bool> running_{ false };
         void run();
     };
