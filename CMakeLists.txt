@@ -12,16 +12,25 @@ if(MSVC)
   add_compile_options(/bigobj)
 endif()
 
+add_compile_options(-std=c++20)
 option(USE_STANDALONE_ASIO "Use standalone Asio" ON)
 
 if(APPLE)
-  set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "" FORCE)
+  # Detect host architecture automatically
+  execute_process(COMMAND uname -m OUTPUT_VARIABLE HOST_ARCH OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+  # Set architecture based on host system
+  if(HOST_ARCH STREQUAL "arm64")
+    set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "Build architecture for macOS" FORCE)
+  else()
+    set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "Build architecture for macOS" FORCE)
+  endif()
+
+  message(STATUS "Building for macOS architecture: ${CMAKE_OSX_ARCHITECTURES}")
 endif()
 
 # --- Fetch Dependencies ---
 include(FetchContent)
-
-set(OPENSSL_ROOT_DIR "C:/Users/Andrew/Documents/vcpkg/installed/x64-windows")
 find_package(OpenSSL REQUIRED)
 
 if(USE_STANDALONE_ASIO)
@@ -52,7 +61,10 @@ file(GLOB_RECURSE sources src/*.cpp)
 add_executable(soundcloud_listenalong_app ${sources})
 
 if(CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET soundcloud_listenalong_app PROPERTY CXX_STANDARD 20)
+  set_target_properties(soundcloud_listenalong_app PROPERTIES
+          CXX_STANDARD 20
+          CXX_STANDARD_REQUIRED ON
+  )
 endif()
 
 target_compile_definitions(soundcloud_listenalong_app
@@ -101,9 +113,13 @@ if(WIN32)
   set(DISCORD_DLL    "${DISCORD_LIB_DIR}/discord_game_sdk.dll")
   set(DISCORD_IMPLIB "${DISCORD_LIB_DIR}/discord_game_sdk.dll.lib")
 elseif(APPLE)
-  if("${CMAKE_OSX_ARCHITECTURES}" MATCHES "arm64")
+  # Get the native architecture of the current build
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+    set(DISCORD_LIB_DIR "${discord_sdk_dir}/lib/x86_64")
+  elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
     set(DISCORD_LIB_DIR "${discord_sdk_dir}/lib/aarch64")
   else()
+    # Default to x86_64 if we can't determine
     set(DISCORD_LIB_DIR "${discord_sdk_dir}/lib/x86_64")
   endif()
   set(DISCORD_LIB "${DISCORD_LIB_DIR}/discord_game_sdk.dylib")
