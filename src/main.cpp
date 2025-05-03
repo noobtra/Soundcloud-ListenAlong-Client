@@ -8,10 +8,8 @@ int main()
     {
 		// Initialize listenalong core, pass discord client as a dependency
         core->initialize();
-
-        std::cout << "Soundcloud Manager and Discord Manager initialized, press any input to exit the process." << std::endl;
-        std::cin.get();
-        std::cout << "Shutting down application..." << std::endl;
+        std::cout << "Soundcloud Manager and Discord Manager initialized" << std::endl;
+        core->run();
 
         // Explicitly clean up before returning
         core.reset();

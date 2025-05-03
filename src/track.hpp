@@ -23,6 +23,7 @@ namespace listenalong
             track.start_time = j["start_time"];
             track.end_time = j["end_time"];
             track.artwork_url = j["artwork_url"];
+			track.artwork_url = track.artwork_url.replace(track.artwork_url.find("large.jpg"), 9, "t500x500.jpg");
             track.track_url = j["track_url"];
             return track;
         }

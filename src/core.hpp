@@ -27,6 +27,7 @@ namespace listenalong
         ~core();
 
         void initialize();
+        void run() const;
 
         bool is_extension_connected() const { return browser_extension_connected_; }
         bool is_server_connected() const { return api_sync_connected_; }

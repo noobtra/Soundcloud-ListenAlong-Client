@@ -21,13 +21,20 @@ listenalong::core::~core()
 void listenalong::core::initialize()
 {
 	running_ = true;
+
 	discord_manager_.initialize();
+	party_ = party(discord_manager_.get_user().GetId());
 
 	// Initialize the extension server
 	initialize_extension_server();
 
 	// Initialize the sync client
 	initialize_sync_client();
+}
+
+void listenalong::core::run() const
+{
+	discord_manager_.run();
 }
 
 void listenalong::core::initialize_extension_server()

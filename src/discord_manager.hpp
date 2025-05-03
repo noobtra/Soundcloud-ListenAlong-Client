@@ -19,6 +19,8 @@ namespace listenalong
         }
 
         void initialize();
+        void run() const;
+
 		discord::User get_user() const { return current_user_; }
         void update_activity(const discord::Activity& activity);
 
@@ -27,6 +29,5 @@ namespace listenalong
         std::unique_ptr<discord::Core> core_;
 		std::atomic<bool> connected_{ false };
         std::atomic<bool> running_{ false };
-        void run();
     };
 }

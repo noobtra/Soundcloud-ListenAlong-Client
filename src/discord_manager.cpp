@@ -45,7 +45,7 @@ void listenalong::discord_manager::update_activity(const discord::Activity& acti
     }
 }
 
-void listenalong::discord_manager::run()
+void listenalong::discord_manager::run() const
 {
     while (running_)
     {
