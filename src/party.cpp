@@ -13,7 +13,6 @@ listenalong::party::party(const uint64_t host_id) :
 	members_.insert(host_id);
 }
 
-/*
 discord::Activity listenalong::party::get_activity() const
 {
 	// Set up the name, state, and details. We have to convert the UTF-8 strings to std::string
@@ -58,7 +57,6 @@ discord::Activity listenalong::party::get_activity() const
 
     return activity;
 }
-*/
 
 
 std::string listenalong::party::generate_uuid(std::random_device& rd)

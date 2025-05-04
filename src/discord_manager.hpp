@@ -1,9 +1,10 @@
 #pragma once
-#include "discordpp.h"
 #include <atomic>
 #include <thread>
 #include <memory>
 #include <string>
+
+#include <discord.h>
 
 #define DISCORD_CLIENT_ID 1205361353188188221
 
@@ -16,15 +17,18 @@ namespace listenalong
         ~discord_manager()
     	{
             running_ = false;
-            client_.reset();
+            core_.reset();
         }
 
         void initialize();
-		discordpp::UserHandle get_user() const { return client_->GetCurrentUser(); }
         void run() const;
 
+		discord::User get_user() const { return current_user_; }
+        void update_activity(const discord::Activity& activity);
+
     private:
-        std::unique_ptr<discordpp::Client> client_;
+        discord::User current_user_;
+        std::unique_ptr<discord::Core> core_;
 		std::atomic<bool> connected_{ false };
         std::atomic<bool> running_{ false };
     };

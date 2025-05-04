@@ -23,7 +23,7 @@ void listenalong::core::initialize()
 	running_ = true;
 
 	discord_manager_.initialize();
-	party_ = party(discord_manager_.get_user().Id());
+	party_ = party(discord_manager_.get_user().GetId());
 
 	// Initialize the extension server
 	initialize_extension_server();
@@ -192,8 +192,9 @@ void listenalong::core::receive_extension_message(const std::string& payload)
         {
             const auto track_data = track::from_json(message["data"]);
             const auto party_host_id = party_.get_host_id();
-			if (party_host_id && party_host_id == discord_manager_.get_user().Id())
+			if (party_host_id && party_host_id == discord_manager_.get_user().GetId())
 				party_.set_track(track_data);
+            discord_manager_.update_activity(party_.get_activity());
         }
 	}
 	catch (const std::exception& e) 

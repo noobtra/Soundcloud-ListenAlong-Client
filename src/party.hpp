@@ -33,7 +33,7 @@ namespace listenalong
         double get_duration() const { return track_.end_time - track_.start_time; } // Returns the duration of the track in ms
 
 		// Activity management
-        //discord::Activity get_activity() const;
+        discord::Activity get_activity() const;
 
 
     private:
