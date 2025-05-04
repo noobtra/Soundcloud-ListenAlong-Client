@@ -1,3 +1,5 @@
+#define DISCORDPP_IMPLEMENTATION
+
 #include "discord_manager.hpp"
 #include <stdexcept>
 #include <chrono>
@@ -6,50 +8,83 @@
 
 void listenalong::discord_manager::initialize()
 {
-    discord::Core* core{};
-    auto result = discord::Core::Create(DISCORD_CLIENT_ID, DiscordCreateFlags_Default, &core);
-    core_.reset(core);
 
-    if (!core_ || result != discord::Result::Ok)
-        throw std::runtime_error("Failed to initialize Discord core");
+	// Initialize the Discord client
+	client_ = std::make_unique<discordpp::Client>();
 
-	
-    core_->UserManager().OnCurrentUserUpdate.Connect([this]
+    // Set up logging callback
+    client_->AddLogCallback([](auto message, auto severity) {
+        std::cout << "[" << EnumToString(severity) << "] " << message << std::endl;
+        }, discordpp::LoggingSeverity::Info);
+
+
+    // Set up status callback to monitor client connection
+    client_->SetStatusChangedCallback([this](discordpp::Client::Status status, discordpp::Client::Error error, int32_t errorDetail) 
     {
-    	core_->UserManager().GetCurrentUser(&current_user_);
-		connected_ = true;
+        std::cout << "Status changed: " << discordpp::Client::StatusToString(status) << std::endl;
+
+        if (status == discordpp::Client::Status::Ready) 
+        {
+			connected_ = true;
+        }
+        else if (error != discordpp::Client::Error::None) 
+        {
+			connected_ = false;
+        }
     });
+
+    // Generate OAuth2 code verifier for authentication
+    auto codeVerifier = client_->CreateAuthorizationCodeVerifier();
+
+    // Set up authentication arguments
+    discordpp::AuthorizationArgs args{};
+    args.SetClientId(DISCORD_CLIENT_ID);
+    args.SetScopes(discordpp::Client::GetDefaultPresenceScopes());
+    args.SetCodeChallenge(codeVerifier.Challenge());
+
+    // Begin authentication process
+    client_->Authorize(args, [this, codeVerifier](auto result, auto code, auto redirectUri) {
+        if (!result.Successful()) {
+            std::cerr << "Authentication Error: " << result.Error() << std::endl;
+            return;
+        }
+        else {
+            std::cout << "Authorization successful! Getting access token...\n";
+
+            // Exchange auth code for access token
+            client_->GetToken(DISCORD_CLIENT_ID, code, codeVerifier.Verifier(), redirectUri,
+                [this](discordpp::ClientResult result,
+                    std::string accessToken,
+                    std::string refreshToken,
+                    discordpp::AuthorizationTokenType tokenType,
+                    int32_t expiresIn,
+                    std::string scope) {
+                        std::cout << "Access token received! Establishing connection...\n";
+                        // Next Step: Update the token and connect
+                        client_->UpdateToken(discordpp::AuthorizationTokenType::Bearer, accessToken, [this](discordpp::ClientResult result) {
+                            if (result.Successful()) {
+                                std::cout << "Token updated, connecting to Discord...\n";
+                                client_->Connect();
+                            }
+                            });
+                });
+        }
+        });
 
 	while (!connected_)
 	{
+        discordpp::RunCallbacks();
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		core_->RunCallbacks();
 	}
 
     running_ = true;
-}
-
-void listenalong::discord_manager::update_activity(const discord::Activity& activity)
-{
-    if (core_)
-    {
-        core_->ActivityManager().UpdateActivity(activity, [](discord::Result result)
-            {
-                if (result != discord::Result::Ok)
-                {
-					std::cerr << "Failed to update activity: " << static_cast<int>(result) << std::endl;
-                }
-            });
-    }
 }
 
 void listenalong::discord_manager::run() const
 {
     while (running_)
     {
-        if (core_)
-            core_->RunCallbacks();
-
+        discordpp::RunCallbacks();
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 }
