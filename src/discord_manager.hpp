@@ -6,6 +6,8 @@
 
 #include <discord.h>
 
+#define DISCORD_CLIENT_ID 1205361353188188221
+
 namespace listenalong
 {
     class discord_manager

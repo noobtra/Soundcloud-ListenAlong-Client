@@ -4,8 +4,6 @@
 #include <iostream>
 #include <ostream>
 
-#define DISCORD_CLIENT_ID 1205361353188188221
-
 void listenalong::discord_manager::initialize()
 {
     discord::Core* core{};
@@ -39,7 +37,7 @@ void listenalong::discord_manager::update_activity(const discord::Activity& acti
             {
                 if (result != discord::Result::Ok)
                 {
-                    // Handle error if needed
+					std::cerr << "Failed to update activity: " << static_cast<int>(result) << std::endl;
                 }
             });
     }

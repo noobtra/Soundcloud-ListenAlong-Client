@@ -194,7 +194,7 @@ void listenalong::core::receive_extension_message(const std::string& payload)
             const auto party_host_id = party_.get_host_id();
 			if (party_host_id && party_host_id == discord_manager_.get_user().GetId())
 				party_.set_track(track_data);
-
+            discord_manager_.update_activity(party_.get_activity());
         }
 	}
 	catch (const std::exception& e) 
