@@ -26,7 +26,7 @@ discord::Activity listenalong::party::get_activity() const
         reinterpret_cast<const char*>(track_.title.c_str()),
         track_.title.size());
 	std::string details = std::format(
-		"Listening to {} - {}", artist_utf8, title_utf8);
+		"Listening to {}", artist_utf8);
     activity.SetDetails(details.c_str());
 	activity.SetType(discord::ActivityType::Listening);
 	activity.SetInstance(true);
