@@ -3,8 +3,8 @@
 #include <unordered_set>
 #include <random>
 #include <cstdint>
+#include <discord_rpc.h>
 #include "track.hpp"
-#include "discord_manager.hpp"
 
 namespace listenalong
 {
@@ -18,7 +18,7 @@ namespace listenalong
         // General getters
         const std::string& get_id() const { return id_; }
         const std::string& get_secret() const { return secret_; }
-		uint64_t get_host_id() const { return host_id_; } // if 0, not a valid party
+        uint64_t get_host_id() const { return host_id_; } // if 0, not a valid party
 
         // Member management
         bool add_member(const uint64_t user_id) { return members_.insert(user_id).second; }
@@ -29,12 +29,11 @@ namespace listenalong
 
         // Track management
         track get_track() const { return track_; }
-		void set_track(const track& new_track) { track_ = new_track; }
+        void set_track(const track& new_track) { track_ = new_track; }
         double get_duration() const { return track_.end_time - track_.start_time; } // Returns the duration of the track in ms
 
-		// Activity management
-        discord::Activity get_activity() const;
-
+        // Activity management
+        DiscordRichPresence get_rich_presence() const;
 
     private:
         static std::string generate_uuid(std::random_device& rd);
@@ -43,7 +42,7 @@ namespace listenalong
         std::string match_id_{};
         std::string secret_{};
 
-		uint64_t local_id_ = 0;
+        uint64_t local_id_ = 0;
         uint64_t host_id_ = 0;
         track track_{};
         std::unordered_set<uint64_t> members_{};

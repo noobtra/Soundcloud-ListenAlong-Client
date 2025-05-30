@@ -8,8 +8,11 @@ listenalong::core::~core()
 {
 	running_ = false;
 
-	browser_extension_server_.stop();
-	api_sync_client_.stop();
+	if (browser_extension_connected_)
+		browser_extension_server_.stop();
+
+	if (api_sync_connected_)
+		api_sync_client_.stop();
 
 	if (api_sync_thread_.joinable())
 		api_sync_thread_.join();
@@ -23,7 +26,7 @@ void listenalong::core::initialize()
 	running_ = true;
 
 	discord_manager_.initialize();
-	party_ = party(discord_manager_.get_user().GetId());
+	party_ = party(discord_manager_.get_user_id());
 
 	// Initialize the extension server
 	initialize_extension_server();
@@ -192,9 +195,9 @@ void listenalong::core::receive_extension_message(const std::string& payload)
         {
             const auto track_data = track::from_json(message["data"]);
             const auto party_host_id = party_.get_host_id();
-			if (party_host_id && party_host_id == discord_manager_.get_user().GetId())
+			if (party_host_id && party_host_id == discord_manager_.get_user_id())
 				party_.set_track(track_data);
-            discord_manager_.update_activity(party_.get_activity());
+            discord_manager_.update_activity(party_.get_rich_presence());
         }
 	}
 	catch (const std::exception& e) 

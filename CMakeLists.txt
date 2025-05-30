@@ -56,6 +56,27 @@ FetchContent_Declare(nlohmann_json
 )
 FetchContent_MakeAvailable(nlohmann_json)
 
+# Add rapidjson for discord-rpc
+FetchContent_Declare(rapidjson
+  GIT_REPOSITORY https://github.com/Tencent/rapidjson.git
+  GIT_TAG v1.1.0
+)
+
+# --- Discord RPC Setup ---
+FetchContent_Declare(discord-rpc
+  GIT_REPOSITORY https://github.com/Kenny-Hui/discord-rpc.git
+  GIT_TAG master
+)
+
+# Set discord-rpc options before making it available
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries")
+set(ENABLE_IO_THREAD ON CACHE BOOL "Start up a separate I/O thread, otherwise you must call Discord_UpdateConnection yourself")
+
+# Make rapidjson available first, then discord-rpc
+FetchContent_MakeAvailable(rapidjson)
+FetchContent_MakeAvailable(discord-rpc)
+
+
 # --- Application Target ---
 file(GLOB_RECURSE sources src/*.cpp)
 add_executable(soundcloud_listenalong_app ${sources})
@@ -78,82 +99,13 @@ target_compile_definitions(soundcloud_listenalong_app
 target_link_libraries(soundcloud_listenalong_app PRIVATE 
 nlohmann_json::nlohmann_json
 OpenSSL::SSL OpenSSL::Crypto
+discord-rpc
 )
 target_include_directories(soundcloud_listenalong_app PRIVATE
   ${asio_SOURCE_DIR}/asio/include
   ${websocketpp_SOURCE_DIR}
-)
-
-# --- Discord SDK Setup ---
-set(discord_sdk_dir "${CMAKE_SOURCE_DIR}/third_party/discord-sdk")
-
-# (1) Build the C++ Interface from SDK sources (using files in the "include" folder)
-set(discord_cpp_dir "${discord_sdk_dir}/include")
-file(GLOB discord_sources "${discord_cpp_dir}/*.cpp")
-file(GLOB discord_headers "${discord_cpp_dir}/*.h")
-add_library(DiscordSDKLibrary SHARED ${discord_sources} ${discord_headers})
-if(WIN32)
-  # Ensure that export symbols are generated even if __declspec(dllexport) isn't used.
-  set_target_properties(DiscordSDKLibrary PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
-endif()
-add_library(core::DiscordSDKLibrary ALIAS DiscordSDKLibrary)
-target_include_directories(DiscordSDKLibrary
-  PUBLIC
-    $<BUILD_INTERFACE:${discord_cpp_dir}>
-    $<INSTALL_INTERFACE:include>
-)
-
-# (2) Create an imported target for the binary SDK library
-if(WIN32)
-  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(DISCORD_LIB_DIR "${discord_sdk_dir}/lib/x86_64")
-  else()
-    set(DISCORD_LIB_DIR "${discord_sdk_dir}/lib/x86")
-  endif()
-  set(DISCORD_DLL    "${DISCORD_LIB_DIR}/discord_game_sdk.dll")
-  set(DISCORD_IMPLIB "${DISCORD_LIB_DIR}/discord_game_sdk.dll.lib")
-elseif(APPLE)
-  # Get the native architecture of the current build
-  if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
-    set(DISCORD_LIB_DIR "${discord_sdk_dir}/lib/x86_64")
-  elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
-    set(DISCORD_LIB_DIR "${discord_sdk_dir}/lib/aarch64")
-  else()
-    # Default to x86_64 if we can't determine
-    set(DISCORD_LIB_DIR "${discord_sdk_dir}/lib/x86_64")
-  endif()
-  set(DISCORD_LIB "${DISCORD_LIB_DIR}/discord_game_sdk.dylib")
-elseif(UNIX)
-  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(DISCORD_LIB_DIR "${discord_sdk_dir}/lib/x86_64")
-  else()
-    set(DISCORD_LIB_DIR "${discord_sdk_dir}/lib/aarch64")
-  endif()
-  set(DISCORD_LIB "${DISCORD_LIB_DIR}/discord_game_sdk.so")
-endif()
-
-add_library(DiscordGameSDKLibrary SHARED IMPORTED)
-add_library(core::DiscordGameSDKLibrary ALIAS DiscordGameSDKLibrary)
-if(WIN32)
-  set_target_properties(DiscordGameSDKLibrary PROPERTIES
-    IMPORTED_LOCATION    "${DISCORD_DLL}"
-    IMPORTED_IMPLIB      "${DISCORD_IMPLIB}"
-    INTERFACE_INCLUDE_DIRECTORIES "${discord_sdk_dir}/include"
-  )
-else()
-  set_target_properties(DiscordGameSDKLibrary PROPERTIES
-    IMPORTED_LOCATION    "${DISCORD_LIB}"
-    INTERFACE_INCLUDE_DIRECTORIES "${discord_sdk_dir}/include"
-  )
-endif()
-
-# (3) Link the binary SDK into the interface target so that DiscordCreate is resolved.
-target_link_libraries(DiscordSDKLibrary PRIVATE core::DiscordGameSDKLibrary)
-
-# (4) Link the Discord interface into your executable.
-target_link_libraries(soundcloud_listenalong_app
-  PRIVATE
-    core::DiscordSDKLibrary
+  ${discord-rpc_SOURCE_DIR}/include
+  ${rapidjson_SOURCE_DIR}/include
 )
 
 # --- Platform-Specific System Libraries ---
@@ -165,12 +117,4 @@ elseif(APPLE)
 elseif(UNIX)
   find_package(Threads REQUIRED)
   target_link_libraries(soundcloud_listenalong_app PRIVATE Threads::Threads dl)
-endif()
-
-# Post build for windows
-if(WIN32)
-  add_custom_command(TARGET soundcloud_listenalong_app POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-      "${DISCORD_LIB_DIR}/discord_game_sdk.dll"
-      $<TARGET_FILE_DIR:soundcloud_listenalong_app>)
 endif()
