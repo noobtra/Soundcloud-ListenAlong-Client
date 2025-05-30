@@ -56,12 +56,6 @@ FetchContent_Declare(nlohmann_json
 )
 FetchContent_MakeAvailable(nlohmann_json)
 
-# Add rapidjson for discord-rpc
-FetchContent_Declare(rapidjson
-  GIT_REPOSITORY https://github.com/Tencent/rapidjson.git
-  GIT_TAG v1.1.0
-)
-
 # --- Discord RPC Setup ---
 FetchContent_Declare(discord-rpc
   GIT_REPOSITORY https://github.com/Kenny-Hui/discord-rpc.git
@@ -73,7 +67,6 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries")
 set(ENABLE_IO_THREAD ON CACHE BOOL "Start up a separate I/O thread, otherwise you must call Discord_UpdateConnection yourself")
 
 # Make rapidjson available first, then discord-rpc
-FetchContent_MakeAvailable(rapidjson)
 FetchContent_MakeAvailable(discord-rpc)
 
 
