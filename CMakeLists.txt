@@ -12,7 +12,6 @@ if(MSVC)
   add_compile_options(/bigobj)
 endif()
 
-add_compile_options(-std=c++20)
 option(USE_STANDALONE_ASIO "Use standalone Asio" ON)
 
 if(APPLE)
@@ -73,6 +72,8 @@ FetchContent_MakeAvailable(discord-rpc)
 # --- Application Target ---
 file(GLOB_RECURSE sources src/*.cpp)
 add_executable(soundcloud_listenalong_app ${sources})
+
+target_compile_features(soundcloud_listenalong_app PRIVATE cxx_std_20)
 
 if(CMAKE_VERSION VERSION_GREATER 3.12)
   set_target_properties(soundcloud_listenalong_app PROPERTIES
