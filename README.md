@@ -15,6 +15,14 @@ This project has been **discontinued** due to Discord's activity sync and listen
 - **Sync Server Ready**: Infrastructure for multi-user synchronization (incomplete)
 - **Modern C++20**: Leverages latest C++ features and best practices
 
+## Related Components
+
+This desktop application works in conjunction with a browser extension:
+
+**🌐 Browser Extension**: [SoundCloud Listen Along - Chrome Extension](https://github.com/noobtra/Soundcloud-ListenAlong-Extension)
+
+The extension monitors SoundCloud playback and sends track information to this desktop app via WebSocket. **Both components are required** for the system to function.
+
 ## Architecture
 
 ```
