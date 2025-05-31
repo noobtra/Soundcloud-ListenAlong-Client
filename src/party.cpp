@@ -26,24 +26,38 @@ DiscordRichPresence listenalong::party::get_rich_presence() const
         reinterpret_cast<const char*>(track_.title.c_str()),
         track_.title.size());
 
+    // Create details string - need to store it statically since DiscordRichPresence holds pointers
+    thread_local std::string details_str;
+    thread_local std::string state_str;
+    thread_local std::string large_image_key_str;
+    thread_local std::string party_id_str;
+    thread_local std::string join_secret_str;
+    thread_local std::string match_secret_str;
+
+    details_str = title_utf8;
+    state_str = artist_utf8;
+    large_image_key_str = track_.artwork_url;
+    party_id_str = id_;
+    join_secret_str = secret_;
+    match_secret_str = match_id_;
+
     // Set basic presence info
-    presence.details = title_utf8.c_str();
-    presence.state = artist_utf8.c_str();
+    presence.details = details_str.c_str();
+    presence.state = state_str.c_str();
 
     // Set assets
-    presence.largeImageKey = track_.artwork_url.c_str();
-    presence.largeImageText = "SoundCloud";
+    presence.largeImageKey = large_image_key_str.c_str();
     presence.smallImageKey = "small_logo";
-    presence.smallImageText = "SoundCloud";
 
     // Set party info
-    presence.partyId = id_.c_str();
+    presence.partyId = party_id_str.c_str();
     presence.partySize = get_member_count();
     presence.partyMax = max_size_;
+	presence.partyPrivacy = DISCORD_PARTY_PUBLIC;
 
     // Set secrets for joining
-    presence.joinSecret = secret_.c_str();
-    presence.matchSecret = match_id_.c_str();
+    presence.joinSecret = join_secret_str.c_str();
+    presence.matchSecret = match_secret_str.c_str();
 
     // Set timestamps (discord-rpc expects seconds, not milliseconds)
     presence.startTimestamp = track_.start_time / 1000;
